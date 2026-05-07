@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Login — SmartCMS{% endblock %}
+
+{% block content %}
+<div class="auth-page d-flex align-items-center py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-sm-10 col-md-7 col-lg-5">
+
+        <div class="card shadow-lg border-0 rounded-4">
+          <div class="card-body p-4 p-md-5">
+
+            <!-- Header -->
+            <div class="text-center mb-4">
+              <div class="auth-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+                <i class="bi bi-box-arrow-in-right fs-3"></i>
+              </div>
+              <h4 class="fw-bold mb-1">Welcome Back</h4>
+              <p class="text-muted small">Sign in to your SmartCMS account</p>
+            </div>
+
+            <!-- Form -->
+            <form method="POST" action="{{ url_for('login') }}" novalidate id="loginForm">
+              <div class="mb-3">
+                <label for="email" class="form-label fw-semibold">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-envelope text-muted"></i>
+                  </span>
+                  <input type="email" class="form-control border-start-0 ps-0"
+                         id="email" name="email" placeholder="you@college.edu"
+                         required autocomplete="email" />
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label for="password" class="form-label fw-semibold">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-lock text-muted"></i>
+                  </span>
+                  <input type="password" class="form-control border-start-0 ps-0"
+                         id="password" name="password" placeholder="••••••••"
+                         required autocomplete="current-password" />
+                  <button class="btn btn-outline-secondary border-start-0" type="button"
+                          id="togglePassword" tabindex="-1">
+                    <i class="bi bi-eye" id="eyeIcon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+              </button>
+            </form>
+
+            <hr class="my-4" />
+
+            <p class="text-center text-muted small mb-0">
+              Don't have an account?
+              <a href="{{ url_for('register') }}" class="text-primary fw-semibold text-decoration-none">
+                Register here
+              </a>
+            </p>
+
+          </div>
+        </div>
+
+        <!-- Admin link -->
+        <p class="text-center text-muted small mt-3">
+          <i class="bi bi-shield-lock me-1"></i>
+          Admin?
+          <a href="{{ url_for('admin_login') }}" class="text-decoration-none">Admin Portal</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    const pwd  = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (pwd.type === 'password') {
+      pwd.type   = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      pwd.type   = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  });
+</script>
+{% endblock %}

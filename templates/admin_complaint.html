@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Review Complaint {{ complaint.complaint_id[:8]|upper }} — Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-9">
+
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+          <li class="breadcrumb-item">
+            <a href="{{ url_for('admin_dashboard') }}" class="text-decoration-none">Admin Dashboard</a>
+          </li>
+          <li class="breadcrumb-item active">
+            {{ complaint.complaint_id[:8]|upper }}
+          </li>
+        </ol>
+      </nav>
+
+      <div class="row g-4">
+
+        <!-- Left: Complaint Details -->
+        <div class="col-lg-7">
+          <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+
+              <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                <h5 class="fw-bold mb-0">{{ complaint.title }}</h5>
+                {% if complaint.status == 'Pending' %}
+                  <span class="badge status-pending fs-6">
+                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                  </span>
+                {% elif complaint.status == 'In Progress' %}
+                  <span class="badge status-inprogress fs-6">
+                    <i class="bi bi-arrow-repeat me-1"></i>In Progress
+                  </span>
+                {% else %}
+                  <span class="badge status-resolved fs-6">
+                    <i class="bi bi-check-circle-fill me-1"></i>Resolved
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Meta info -->
+              <div class="row g-3 mb-4">
+                <div class="col-sm-6">
+                  <div class="detail-label">Reference ID</div>
+                  <code class="text-danger fw-semibold">{{ complaint.complaint_id[:8]|upper }}</code>
+                </div>
+                <div class="col-sm-6">
+                  <div class="detail-label">Category</div>
+                  <span class="badge bg-light text-dark border px-3 py-2">
+                    <i class="bi bi-tag-fill me-1 text-primary"></i>{{ complaint.category }}
+                  </span>
+                </div>
+                <div class="col-sm-6">
+                  <div class="detail-label">Submitted By</div>
+                  <div class="fw-semibold small">{{ complaint.user_name }}</div>
+                  <div class="text-muted smaller">{{ complaint.user_email }}</div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="detail-label">Submitted At</div>
+                  <div class="text-muted small">{{ complaint.timestamp }}</div>
+                </div>
+                {% if complaint.updated_at != complaint.timestamp %}
+                <div class="col-12">
+                  <div class="detail-label">Last Updated</div>
+                  <div class="text-muted small">{{ complaint.updated_at }}</div>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <div class="detail-label mb-2">Description</div>
+                <div class="description-box bg-light rounded-3 p-3 text-muted">
+                  {{ complaint.description }}
+                </div>
+              </div>
+
+              <!-- Previous Remarks -->
+              {% if complaint.remarks %}
+              <div class="alert alert-success border-0 rounded-3">
+                <div class="fw-semibold small mb-1">
+                  <i class="bi bi-chat-text-fill me-1"></i>Previous Remarks
+                </div>
+                <div class="small">{{ complaint.remarks }}</div>
+              </div>
+              {% endif %}
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Update Form -->
+        <div class="col-lg-5">
+          <div class="card border-0 shadow-sm rounded-4 border-top border-danger border-4">
+            <div class="card-body p-4">
+
+              <h6 class="fw-bold mb-3 text-danger">
+                <i class="bi bi-pencil-square me-2"></i>Update Complaint
+              </h6>
+
+              <form method="POST"
+                    action="{{ url_for('admin_complaint', complaint_id=complaint.complaint_id) }}"
+                    novalidate id="updateForm">
+
+                <div class="mb-3">
+                  <label for="status" class="form-label fw-semibold">New Status</label>
+                  <select class="form-select" id="status" name="status" required>
+                    {% for opt in status_options %}
+                    <option value="{{ opt }}" {% if complaint.status == opt %}selected{% endif %}>
+                      {{ opt }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="mb-4">
+                  <label for="remarks" class="form-label fw-semibold">
+                    Admin Remarks
+                    <span class="text-muted fw-normal small">(optional)</span>
+                  </label>
+                  <textarea class="form-control" id="remarks" name="remarks"
+                            rows="5"
+                            placeholder="Add resolution notes, action taken, or any feedback for the user…"
+                            maxlength="1000">{{ complaint.remarks or '' }}</textarea>
+                  <div class="form-text">
+                    User will be notified via AWS SNS after you save.
+                  </div>
+                </div>
+
+                <div class="alert alert-light border small mb-4 d-flex gap-2 align-items-start">
+                  <i class="bi bi-bell-fill text-warning mt-1 flex-shrink-0"></i>
+                  <span>
+                    Saving will trigger an <strong>SNS notification</strong> to
+                    <strong>{{ complaint.user_email }}</strong>.
+                  </span>
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-danger fw-semibold" id="saveBtn">
+                    <i class="bi bi-save-fill me-2"></i>Save &amp; Notify User
+                  </button>
+                  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                  </a>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('updateForm').addEventListener('submit', function (e) {
+    const status = document.getElementById('status').value;
+    if (!confirm(`Update status to "${status}" and notify the user?`)) {
+      e.preventDefault();
+      return;
+    }
+    const btn = document.getElementById('saveBtn');
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving…';
+  });
+</script>
+{% endblock %}

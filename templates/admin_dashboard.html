@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — SmartCMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-0">
+        <i class="bi bi-speedometer2 text-danger me-2"></i>Admin Dashboard
+      </h4>
+      <p class="text-muted small mb-0">
+        Logged in as <strong>{{ session.get('admin_email') }}</strong>
+      </p>
+    </div>
+    <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-2">
+      <i class="bi bi-shield-lock-fill me-1"></i>Admin Mode
+    </span>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card stat-card border-0 h-100 bg-dark text-white">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-white bg-opacity-10">
+            <i class="bi bi-collection-fill text-white fs-4"></i>
+          </div>
+          <div>
+            <div class="display-6 fw-bold lh-1">{{ stats.total }}</div>
+            <div class="small opacity-75">All Complaints</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card stat-card border-0 h-100 bg-warning">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-white bg-opacity-20">
+            <i class="bi bi-hourglass-split fs-4"></i>
+          </div>
+          <div>
+            <div class="display-6 fw-bold lh-1">{{ stats.pending }}</div>
+            <div class="small opacity-75">Pending</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card stat-card border-0 h-100 bg-info text-white">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-white bg-opacity-20">
+            <i class="bi bi-arrow-repeat text-white fs-4"></i>
+          </div>
+          <div>
+            <div class="display-6 fw-bold lh-1">{{ stats.in_progress }}</div>
+            <div class="small opacity-75">In Progress</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card stat-card border-0 h-100 bg-success text-white">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-white bg-opacity-20">
+            <i class="bi bi-check-circle-fill text-white fs-4"></i>
+          </div>
+          <div>
+            <div class="display-6 fw-bold lh-1">{{ stats.resolved }}</div>
+            <div class="small opacity-75">Resolved</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter + Search Toolbar -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-list-columns-reverse me-2 text-danger"></i>All Complaints
+        </h6>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <!-- Status filter buttons -->
+          <div class="btn-group btn-group-sm" role="group">
+            <button class="btn btn-outline-secondary active" onclick="filterStatus('all', this)">
+              All <span class="badge bg-secondary ms-1">{{ stats.total }}</span>
+            </button>
+            <button class="btn btn-outline-warning" onclick="filterStatus('Pending', this)">
+              Pending <span class="badge bg-warning text-dark ms-1">{{ stats.pending }}</span>
+            </button>
+            <button class="btn btn-outline-info" onclick="filterStatus('In Progress', this)">
+              In Progress <span class="badge bg-info text-white ms-1">{{ stats.in_progress }}</span>
+            </button>
+            <button class="btn btn-outline-success" onclick="filterStatus('Resolved', this)">
+              Resolved <span class="badge bg-success ms-1">{{ stats.resolved }}</span>
+            </button>
+          </div>
+          <input type="text" id="adminSearch" class="form-control form-control-sm"
+                 placeholder="Search…" style="width:170px;" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body p-0 pt-3">
+      {% if complaints %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="adminTable">
+          <thead class="table-light text-muted small text-uppercase">
+            <tr>
+              <th class="px-4">Ref&nbsp;ID</th>
+              <th>Title</th>
+              <th class="d-none d-md-table-cell">User</th>
+              <th class="d-none d-md-table-cell">Category</th>
+              <th>Status</th>
+              <th class="d-none d-lg-table-cell">Submitted</th>
+              <th class="px-4 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+            <tr data-status="{{ c.status }}">
+              <td class="px-4">
+                <code class="text-danger fw-semibold">{{ c.complaint_id[:8]|upper }}</code>
+              </td>
+              <td>
+                <div class="fw-semibold text-truncate" style="max-width:200px;">{{ c.title }}</div>
+              </td>
+              <td class="d-none d-md-table-cell">
+                <div class="small fw-semibold">{{ c.user_name }}</div>
+                <div class="text-muted smaller">{{ c.user_email }}</div>
+              </td>
+              <td class="d-none d-md-table-cell">
+                <span class="badge bg-light text-dark border">{{ c.category }}</span>
+              </td>
+              <td>
+                {% if c.status == 'Pending' %}
+                  <span class="badge status-pending">
+                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                  </span>
+                {% elif c.status == 'In Progress' %}
+                  <span class="badge status-inprogress">
+                    <i class="bi bi-arrow-repeat me-1"></i>In Progress
+                  </span>
+                {% else %}
+                  <span class="badge status-resolved">
+                    <i class="bi bi-check-circle-fill me-1"></i>Resolved
+                  </span>
+                {% endif %}
+              </td>
+              <td class="d-none d-lg-table-cell text-muted small">{{ c.timestamp }}</td>
+              <td class="px-4 text-center">
+                <a href="{{ url_for('admin_complaint', complaint_id=c.complaint_id) }}"
+                   class="btn btn-sm btn-danger" title="Review & Update">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
+        <h6 class="fw-bold mt-3 text-muted">No complaints submitted yet</h6>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function filterStatus(status, btn) {
+    // Update active state
+    document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const rows = document.querySelectorAll('#adminTable tbody tr');
+    rows.forEach(row => {
+      row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+    });
+  }
+
+  document.getElementById('adminSearch').addEventListener('input', function () {
+    const q    = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#adminTable tbody tr');
+    rows.forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+    // Reset filter buttons
+    document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.btn-group .btn').classList.add('active');
+  });
+</script>
+{% endblock %}

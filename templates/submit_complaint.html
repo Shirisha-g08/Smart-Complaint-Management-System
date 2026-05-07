@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Submit Complaint — SmartCMS{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-9 col-lg-7">
+
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+          <li class="breadcrumb-item">
+            <a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a>
+          </li>
+          <li class="breadcrumb-item active">Submit Complaint</li>
+        </ol>
+      </nav>
+
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4 p-md-5">
+
+          <!-- Header -->
+          <div class="mb-4">
+            <h5 class="fw-bold mb-1">
+              <i class="bi bi-pencil-square text-primary me-2"></i>Submit a New Complaint
+            </h5>
+            <p class="text-muted small mb-0">
+              Fill in the form below. You'll receive an email confirmation via AWS SNS.
+            </p>
+          </div>
+
+          <!-- Form -->
+          <form method="POST" action="{{ url_for('submit_complaint') }}" novalidate id="complaintForm">
+
+            <!-- Title -->
+            <div class="mb-3">
+              <label for="title" class="form-label fw-semibold">
+                Complaint Title <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="title" name="title"
+                     placeholder="Brief summary of the issue"
+                     required maxlength="150" />
+              <div class="form-text">Keep it short and descriptive (max 150 chars).</div>
+            </div>
+
+            <!-- Category -->
+            <div class="mb-3">
+              <label for="category" class="form-label fw-semibold">
+                Category <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="category" name="category" required>
+                <option value="" disabled selected>— Select a category —</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+              <label for="description" class="form-label fw-semibold">
+                Description <span class="text-danger">*</span>
+              </label>
+              <textarea class="form-control" id="description" name="description"
+                        rows="6" placeholder="Describe the issue in detail…"
+                        required maxlength="2000"></textarea>
+              <div class="d-flex justify-content-between">
+                <div class="form-text">Be specific — it helps admins resolve faster.</div>
+                <small class="text-muted mt-1">
+                  <span id="charCount">0</span> / 2000
+                </small>
+              </div>
+            </div>
+
+            <!-- Submitter info (readonly) -->
+            <div class="alert alert-light border rounded-3 mb-4 d-flex gap-3 align-items-start">
+              <i class="bi bi-info-circle-fill text-primary mt-1"></i>
+              <div class="small">
+                Submitting as <strong>{{ session.get('user_name') }}</strong>
+                (<code>{{ session.get('user_email') }}</code>).
+                You'll receive an SNS notification after submission.
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary px-5 fw-semibold" id="submitBtn">
+                <i class="bi bi-send-fill me-2"></i>Submit Complaint
+              </button>
+              <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const desc      = document.getElementById('description');
+  const counter   = document.getElementById('charCount');
+  const submitBtn = document.getElementById('submitBtn');
+
+  desc.addEventListener('input', function () {
+    counter.textContent = this.value.length;
+    counter.classList.toggle('text-danger', this.value.length > 1900);
+  });
+
+  document.getElementById('complaintForm').addEventListener('submit', function () {
+    submitBtn.disabled    = true;
+    submitBtn.innerHTML   = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting…';
+  });
+</script>
+{% endblock %}

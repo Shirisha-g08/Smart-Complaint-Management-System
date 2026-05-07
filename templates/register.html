@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Register — SmartCMS{% endblock %}
+
+{% block content %}
+<div class="auth-page d-flex align-items-center py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-sm-10 col-md-8 col-lg-6">
+
+        <div class="card shadow-lg border-0 rounded-4">
+          <div class="card-body p-4 p-md-5">
+
+            <!-- Header -->
+            <div class="text-center mb-4">
+              <div class="auth-icon bg-success bg-opacity-10 text-success mx-auto mb-3">
+                <i class="bi bi-person-plus-fill fs-3"></i>
+              </div>
+              <h4 class="fw-bold mb-1">Create Account</h4>
+              <p class="text-muted small">Register to submit and track your complaints</p>
+            </div>
+
+            <!-- Form -->
+            <form method="POST" action="{{ url_for('register') }}" novalidate id="registerForm">
+
+              <div class="mb-3">
+                <label for="name" class="form-label fw-semibold">Full Name</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-person text-muted"></i>
+                  </span>
+                  <input type="text" class="form-control border-start-0 ps-0"
+                         id="name" name="name" placeholder="John Doe"
+                         required maxlength="100" />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="email" class="form-label fw-semibold">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-envelope text-muted"></i>
+                  </span>
+                  <input type="email" class="form-control border-start-0 ps-0"
+                         id="email" name="email" placeholder="you@college.edu"
+                         required autocomplete="email" />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-phone text-muted"></i>
+                  </span>
+                  <input type="tel" class="form-control border-start-0 ps-0"
+                         id="phone" name="phone" placeholder="+91 9876543210"
+                         required maxlength="20" />
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-sm-6">
+                  <label for="password" class="form-label fw-semibold">Password</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                      <i class="bi bi-lock text-muted"></i>
+                    </span>
+                    <input type="password" class="form-control border-start-0 ps-0"
+                           id="password" name="password" placeholder="Min 8 chars"
+                           required minlength="8" autocomplete="new-password" />
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <label for="confirm_password" class="form-label fw-semibold">Confirm Password</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                      <i class="bi bi-lock-fill text-muted"></i>
+                    </span>
+                    <input type="password" class="form-control border-start-0 ps-0"
+                           id="confirm_password" name="confirm_password" placeholder="Repeat"
+                           required autocomplete="new-password" />
+                  </div>
+                  <div id="matchFeedback" class="invalid-feedback d-none">Passwords do not match.</div>
+                </div>
+              </div>
+
+              <!-- Password strength bar -->
+              <div class="mb-3">
+                <div class="progress" style="height:4px;">
+                  <div id="strengthBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+                </div>
+                <small id="strengthLabel" class="text-muted"></small>
+              </div>
+
+              <button type="submit" class="btn btn-success w-100 btn-lg fw-semibold" id="registerBtn">
+                <i class="bi bi-person-check-fill me-2"></i>Create Account
+              </button>
+            </form>
+
+            <hr class="my-4" />
+            <p class="text-center text-muted small mb-0">
+              Already have an account?
+              <a href="{{ url_for('login') }}" class="text-primary fw-semibold text-decoration-none">
+                Sign in
+              </a>
+            </p>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Password strength meter
+  const pwdInput    = document.getElementById('password');
+  const confInput   = document.getElementById('confirm_password');
+  const bar         = document.getElementById('strengthBar');
+  const label       = document.getElementById('strengthLabel');
+  const feedback    = document.getElementById('matchFeedback');
+
+  pwdInput.addEventListener('input', function () {
+    const val = this.value;
+    let strength = 0;
+    if (val.length >= 8)                   strength++;
+    if (/[A-Z]/.test(val))                 strength++;
+    if (/[0-9]/.test(val))                 strength++;
+    if (/[^A-Za-z0-9]/.test(val))          strength++;
+
+    const levels = ['bg-danger', 'bg-warning', 'bg-info', 'bg-success'];
+    const texts  = ['Weak', 'Fair', 'Good', 'Strong'];
+    bar.className = 'progress-bar ' + (levels[strength - 1] || 'bg-danger');
+    bar.style.width = (strength * 25) + '%';
+    label.textContent = val.length ? ('Strength: ' + (texts[strength - 1] || 'Weak')) : '';
+  });
+
+  confInput.addEventListener('input', function () {
+    if (this.value && this.value !== pwdInput.value) {
+      feedback.classList.remove('d-none');
+      this.classList.add('is-invalid');
+    } else {
+      feedback.classList.add('d-none');
+      this.classList.remove('is-invalid');
+    }
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', function (e) {
+    if (confInput.value !== pwdInput.value) {
+      e.preventDefault();
+      confInput.focus();
+    }
+  });
+</script>
+{% endblock %}
